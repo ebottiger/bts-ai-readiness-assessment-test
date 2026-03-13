@@ -1633,95 +1633,105 @@ function downloadPDF() {
 
     // ════════════════════════════════════════════════════════
     // PAGE 3 — All Five Personas
+    // Layout per card (stacked full-width blocks):
+    //   Line 1: Emoji  Name  [badge]
+    //   Line 2: "Quoted tagline" (italic)
+    //   Line 3: Full description
+    //   Line 4: KEY STRENGTHS: S1  |  S2  |  S3
     // ════════════════════════════════════════════════════════
     doc.addPage();
     doc.setFillColor(pc[0],pc[1],pc[2]); doc.rect(0,0,W,3,'F');
 
-    // Page heading
-    doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(45,45,45);
-    doc.text('Want to learn more about all five personas?', M, 14);
-    doc.setFont('helvetica','normal'); doc.setFontSize(MIN_FS); doc.setTextColor(100,100,100);
-    doc.text('Each persona reflects a real and valid relationship with AI at work. No persona is better than another.', M, 22);
+    // Heading
+    doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(45,45,45);
+    doc.text('Want to learn more about all five personas?', M, 13);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(110,110,110);
+    doc.text('Each persona reflects a real and valid relationship with AI at work. No persona is better than another.', M, 21);
 
-    y = 29;
-    var pOrder3 = ['identity','skeptic','purist','overwhelmed','accelerator'];
-    // Calculate card height to fill page cleanly — 5 cards, 4 gaps
+    var pOrder3  = ['identity','skeptic','purist','overwhelmed','accelerator'];
     var cardGap3 = 3;
-    var availForCards = 283 - y;
-    var card3H = Math.floor((availForCards - cardGap3*4) / 5);
-    // Layout: left accent (5mm) | emoji+name+tagline col (80mm) | description col (70mm) | strengths col (20mm)
-    var col1W = 82, col2W = 76, col3W = PW - col1W - col2W - 10;
+    // 5 cards + 4 gaps fill from y=26 to y=283
+    var card3H   = Math.floor((283 - 26 - cardGap3*4) / 5); // ~49mm each
+    var ACC3 = 5;  // left accent bar width
+    var PAD3 = 7;  // internal horizontal padding
+    var cx3  = M + ACC3 + PAD3; // text left edge
+    var ctw3 = PW - ACC3 - PAD3*2; // usable text width
+    y = 26;
 
     pOrder3.forEach(function(pid){
-      var pp3 = PERSONAS[pid];
-      var ppc3 = hex(pp3.color);
+      var pp   = PERSONAS[pid];
+      var rgb3 = hex(pp.color);
+      var bg3  = tint(rgb3, 0.91);
       var isP3 = pid === r.primary;
       var isS3 = r.secondary && pid === r.secondary;
-      var bg3 = tint(ppc3, 0.91);
 
-      // Card background
+      // ── Card background + accent ─────────────────────────
       doc.setFillColor(bg3[0],bg3[1],bg3[2]);
       doc.roundedRect(M, y, PW, card3H, 2,2,'F');
-      // Left accent
-      doc.setFillColor(ppc3[0],ppc3[1],ppc3[2]);
-      doc.roundedRect(M, y, 5, card3H, 1,1,'F');
+      doc.setFillColor(rgb3[0],rgb3[1],rgb3[2]);
+      doc.roundedRect(M, y, ACC3, card3H, 1,1,'F');
 
-      var cx = M + 8; // content starts after accent
-      var cy = y + 6; // top padding
+      var iy = y + 8; // internal y cursor
 
-      // ── COLUMN 1: Emoji · Name · Badge · Tagline ──
-      // Name (bold, persona colour)
-      doc.setFont('helvetica','bold'); doc.setFontSize(13);
-      doc.setTextColor(ppc3[0],ppc3[1],ppc3[2]);
-      doc.text(pp3.name, cx, cy + 5);
+      // ── LINE 1: Name + badge ──────────────────────────────
+      // Name
+      doc.setFont('helvetica','bold'); doc.setFontSize(14);
+      doc.setTextColor(rgb3[0],rgb3[1],rgb3[2]);
+      doc.text(pp.name, cx3, iy);
+      var nameW = doc.getTextWidth(pp.name);
 
-      // Primary / Secondary badge pill
+      // Badge pill
       if(isP3 || isS3){
         var bdgTxt = isP3 ? 'YOUR PRIMARY' : 'YOUR SECONDARY';
-        var nameW3 = doc.getTextWidth(pp3.name);
-        var bdgX = cx + nameW3 + 3;
-        var bdgW = doc.getTextWidth(bdgTxt) + 5;
-        doc.setFillColor(ppc3[0],ppc3[1],ppc3[2]);
-        doc.roundedRect(bdgX, cy-1, bdgW, 7, 1,1,'F');
-        doc.setFont('helvetica','bold'); doc.setFontSize(6);
+        doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+        var bdgW = doc.getTextWidth(bdgTxt) + 6;
+        var bdgX = cx3 + nameW + 5;
+        doc.setFillColor(rgb3[0],rgb3[1],rgb3[2]);
+        doc.roundedRect(bdgX, iy-5.5, bdgW, 7.5, 1,1,'F');
         doc.setTextColor(255,255,255);
-        doc.text(bdgTxt, bdgX+2.5, cy+4.5);
+        doc.text(bdgTxt, bdgX+3, iy);
       }
+      iy += 7;
 
-      // Tagline (italic, persona colour, slightly smaller)
+      // ── LINE 2: Tagline in italic ─────────────────────────
       doc.setFont('helvetica','italic'); doc.setFontSize(MIN_FS);
-      doc.setTextColor(ppc3[0],ppc3[1],ppc3[2]);
-      var tagLines3 = doc.splitTextToSize('\u201C'+pp3.tagline+'\u201D', col1W - 2);
-      doc.text(tagLines3, cx, cy + 12);
+      doc.setTextColor(rgb3[0],rgb3[1],rgb3[2]);
+      doc.text('“' + pp.tagline + '”', cx3, iy);
+      iy += 7;
 
-      // ── COLUMN 2: Description (era) ──
-      var descX = M + 8 + col1W;
+      // ── LINE 3: Description (era text) ────────────────────
+      // Reserve 13mm at bottom for strengths row
+      var descAvail = card3H - (iy - y) - 14;
+      var maxDescL  = Math.max(1, Math.floor(descAvail / 4.8));
+      var descText  = pp.era || pp.desc || '';
       doc.setFont('helvetica','normal'); doc.setFontSize(MIN_FS);
-      doc.setTextColor(55,55,55);
-      var descText3 = pp3.era || pp3.desc || '';
-      var descLines3 = doc.splitTextToSize(descText3, col2W - 4);
-      // Cap to available card height
-      var maxDescLines = Math.floor((card3H - 10) / 5.2);
-      var descShow3 = descLines3.slice(0, maxDescLines);
-      doc.text(descShow3, descX, cy + 5);
+      doc.setTextColor(50,50,50);
+      var descLines = doc.splitTextToSize(descText, ctw3);
+      doc.text(descLines.slice(0, maxDescL), cx3, iy);
 
-      // ── COLUMN 3: Key Strengths (up to 3) ──
-      var strX = M + 8 + col1W + col2W + 6;
-      doc.setFont('helvetica','bold'); doc.setFontSize(8);
-      doc.setTextColor(ppc3[0],ppc3[1],ppc3[2]);
-      doc.text('KEY STRENGTHS', strX, cy + 5);
+      // ── LINE 4: KEY STRENGTHS: S1  |  S2  |  S3 ──────────
+      var strY = y + card3H - 10;
 
-      var maxStr3 = Math.min(3, (pp3.strengths||[]).length);
-      for(var si3=0; si3<maxStr3; si3++){
-        var sy = cy + 12 + si3 * (card3H - 16) / 3;
-        doc.setFont('helvetica','normal'); doc.setFontSize(MIN_FS);
-        doc.setTextColor(ppc3[0],ppc3[1],ppc3[2]);
-        doc.text('\u2192', strX, sy);
-        doc.setTextColor(45,45,45);
-        var strLines = doc.splitTextToSize(pp3.strengths[si3], col3W - 6);
-        doc.text(strLines[0], strX+5, sy); // one line each
-        if(strLines[1]) doc.text(strLines[1], strX+5, sy+4.8);
+      // "KEY STRENGTHS:" label
+      doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.setTextColor(rgb3[0],rgb3[1],rgb3[2]);
+      var ksLabel = 'KEY STRENGTHS:  ';
+      doc.text(ksLabel, cx3, strY);
+      var ksW = doc.getTextWidth(ksLabel);
+
+      // Three strengths separated by " | "
+      doc.setFont('helvetica','normal'); doc.setFontSize(MIN_FS);
+      doc.setTextColor(45,45,45);
+      var strCount = Math.min(3, (pp.strengths||[]).length);
+      var strParts = [];
+      for(var si=0; si<strCount; si++){
+        strParts.push(pp.strengths[si]);
       }
+      var strLine = strParts.join('  ·  ');
+      // Wrap if too long
+      var strLines = doc.splitTextToSize(strLine, ctw3 - ksW - 4);
+      doc.text(strLines[0], cx3 + ksW, strY);
+      if(strLines[1]) doc.text(strLines[1], cx3 + ksW, strY + 5);
 
       y += card3H + cardGap3;
     });
@@ -1729,10 +1739,10 @@ function downloadPDF() {
     // Footer page 3
     rule(285);
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(160,160,160);
-    doc.text('BTS Enablement  \u00B7  AI Readiness Assessment  \u00B7  bts.com', M, 290);
-    doc.text('Movement is expected. Differentiation is in pacing \u2014 not direction.', W-M, 290, {align:'right'});
+    doc.text('BTS Enablement  ·  AI Readiness Assessment  ·  bts.com', M, 290);
+    doc.text('Movement is expected. Differentiation is in pacing — not direction.', W-M, 290, {align:'right'});
 
-    // ── SAVE ─────────────────────────────────────────────────
+        // ── SAVE ─────────────────────────────────────────────────
     var fname = ((user.name||'').replace(/[^a-zA-Z0-9]/g,'_') || 'Participant') + '_My_AI_Readiness_Persona.pdf';
     doc.save(fname);
 
