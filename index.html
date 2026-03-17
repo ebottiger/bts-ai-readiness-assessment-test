@@ -243,8 +243,8 @@ select option{font-size:13px;font-family:system-ui,sans-serif;padding:4px 0}
 }
 
 /* ── PRE-ASSESSMENT MODAL ── */
-.pre-modal-overlay{position:fixed;inset:0;background:rgba(30,30,30,.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
-.pre-modal-overlay.hidden{display:none}
+.pre-modal-overlay{position:fixed;inset:0;background:rgba(30,30,30,.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.pre-modal-overlay.hidden{display:none;pointer-events:none}
 .pre-modal{background:#fff;border-radius:20px;max-width:480px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.18)}
 .pre-modal-header{background:var(--mg);padding:28px 32px 22px;position:relative}
 .pre-modal-header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:12px;background:#fff;border-radius:12px 12px 0 0}
@@ -908,10 +908,12 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   var el = document.getElementById('s-'+id);
   if(el) { el.classList.add('active'); window.scrollTo(0,0); }
-  // Nav active state
+  // Nav active state — null-safe in case elements not yet in DOM
   var isAssess = ['landing','login','assessment','scoring','results'].indexOf(id) >= 0;
-  document.getElementById('navAssess').classList.toggle('active', isAssess);
-  document.getElementById('navManager').classList.toggle('active', !isAssess);
+  var navA = document.getElementById('navAssess');
+  var navM = document.getElementById('navManager');
+  if(navA) navA.classList.toggle('active', isAssess);
+  if(navM) navM.classList.toggle('active', !isAssess);
 }
 
 // ================================================================
@@ -926,6 +928,8 @@ function init() {
     opt.textContent = t.name;
     sel.appendChild(opt);
   });
+  // Bind modal overlay click-outside handler
+  bindPreModal();
 }
 
 // ================================================================
@@ -2402,12 +2406,11 @@ function dismissPreModal() {
   showScreen('assessment');
 }
 
-// Close if clicking the dark overlay itself
-document.addEventListener('DOMContentLoaded', function(){
-  document.getElementById('preModal').addEventListener('click', function(e){
-    if(e.target === this) dismissPreModal();
-  });
-});
+// Close if clicking the dark overlay itself — bound directly after DOM exists
+function bindPreModal() {
+  var pm = document.getElementById('preModal');
+  if(pm) pm.addEventListener('click', function(e){ if(e.target === this) dismissPreModal(); });
+}
 
 // ================================================================
 // BOOT
