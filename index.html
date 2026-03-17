@@ -1056,7 +1056,8 @@ function selectConf(v) {
 }
 
 function updateNextBtn() {
-  var can = !!(state.selectedPersona && state.selectedConf);
+  // selectedConf can legitimately be 0 (slider at far left) — check for null/undefined only
+  var can = !!(state.selectedPersona && state.selectedConf !== null && state.selectedConf !== undefined);
   var btn = document.getElementById('btnNext');
   btn.disabled = !can;
   btn.textContent = state.currentQ === state.shuffledQ.length-1
@@ -1124,9 +1125,14 @@ function scoreAssessment(answers) {
     pct[k] = Math.round((weighted[k]/totalW)*100);
     personaConf[k] = confCount[k] > 0 ? Math.round(confWeightSum[k]/confCount[k]) : 0;
   });
-  var sorted = keys.map(function(k){return [k,weighted[k]];}).sort(function(a,b){return b[1]-a[1];});
+  // Sort by RAW selection count — primary/secondary reflect which persona
+  // the user chose most frequently, not how confidently they answered.
+  // Weighted scores are retained for the confidence display bars only.
+  var sorted = keys.map(function(k){return [k,raw[k]];}).sort(function(a,b){return b[1]-a[1];});
   var primary = sorted[0][0];
-  var secondary = sorted[1][1] >= 4 ? sorted[1][0] : null;
+  // Secondary requires at least 2 raw selections — one answer is a reaction,
+  // two or more is a pattern worth surfacing.
+  var secondary = sorted[1][1] >= 2 ? sorted[1][0] : null;
   return {raw:raw, weighted:weighted, pct:pct, personaConf:personaConf,
           confCount:confCount, primary:primary, secondary:secondary, sorted:sorted};
 }
@@ -1201,7 +1207,7 @@ function renderResults() {
     }).join('');
     var tipHtml = '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;opacity:.7">What this persona does</div>'
       + '<div style="margin-bottom:10px;line-height:1.6">'+(pp.what||'')+'</div>'
-      + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;opacity:.7">Three strengths</div>'
+      + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;opacity:.7">Key Strengths</div>'
       + '<div style="margin-bottom:10px">'+strengthsHtml+'</div>'
       + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;opacity:.7">In the AI era</div>'
       + '<div style="line-height:1.6">'+(pp.era||'')+'</div>';
@@ -1309,7 +1315,7 @@ function renderResults() {
         +'<div class="pc-tag" style="color:'+pp.color+';opacity:.85;margin-bottom:12px">"'+pp.tagline+'"</div>'
         +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tg);margin-bottom:5px">What this persona does</div>'
         +'<div class="pc-desc" style="margin-bottom:12px">'+pp.desc+'</div>'
-        +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tg);margin-bottom:6px">Three strengths</div>'
+        +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tg);margin-bottom:6px">Key Strengths</div>'
         +'<div style="margin-bottom:12px">'
           +(pp.strengths||[]).map(function(s){ return '<div style="display:flex;gap:8px;margin-bottom:5px"><span style="color:'+pp.color+';font-size:11px;margin-top:2px">&#8212;</span><span style="font-size:12px;line-height:1.5">'+s+'</span></div>'; }).join('')
         +'</div>'
@@ -1545,26 +1551,26 @@ function downloadPDF() {
     doc.setTextColor(emRgb[0],emRgb[1],emRgb[2]);
     doc.text('HOW YOU ADD VALUE', M+cw+14, y+8);
 
-    // Strengths items
+    // Strengths items — dot bullet, text wraps fully inside card
     var iy = y + 14;
     sItems.forEach(function(s){
       doc.setFont('helvetica','normal'); doc.setFontSize(MIN_FS);
-      doc.setTextColor(pc[0],pc[1],pc[2]); doc.text('\u2192', M+8, iy);
+      doc.setTextColor(pc[0],pc[1],pc[2]); doc.text('\u2022', M+8, iy);
       doc.setTextColor(45,45,45);
-      var sl = doc.splitTextToSize(s, cw-16);
+      var sl = doc.splitTextToSize(s, cw-14);
       doc.text(sl, M+13, iy);
-      iy += sl.length > 1 ? sl.length*5 : sRowH;
+      iy += sl.length * 5.5 + 1;
     });
 
-    // Leadership items
+    // Leadership items — dot bullet, text wraps fully inside card
     iy = y + 14;
     lItems.forEach(function(l){
       doc.setFont('helvetica','normal'); doc.setFontSize(MIN_FS);
-      doc.setTextColor(emRgb[0],emRgb[1],emRgb[2]); doc.text('\u2192', M+cw+14, iy);
+      doc.setTextColor(emRgb[0],emRgb[1],emRgb[2]); doc.text('\u2022', M+cw+14, iy);
       doc.setTextColor(45,45,45);
-      var ll = doc.splitTextToSize(l, cw-16);
+      var ll = doc.splitTextToSize(l, cw-14);
       doc.text(ll, M+cw+19, iy);
-      iy += ll.length > 1 ? ll.length*5 : lRowH;
+      iy += ll.length * 5.5 + 1;
     });
 
     y += colCardH + 8;
