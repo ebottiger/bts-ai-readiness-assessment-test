@@ -289,7 +289,7 @@ select option{font-size:13px;font-family:system-ui,sans-serif;padding:4px 0}
 
   <div class="time-badge">⏱ 10–12 minutes &nbsp;·&nbsp; 15 questions &nbsp;·&nbsp; Downloadable results</div>
   <div class="cta-row">
-    <button class="btn btn-primary" onclick="showPreModal()">Begin Assessment →</button>
+    <button class="btn btn-primary" onclick="showScreen('login')">Begin Assessment →</button>
     <button class="btn btn-secondary" onclick="showScreen('mgr-login')">Manager View</button>
   </div>
   <div style="margin-top:40px;padding:20px 24px;background:#fff;border-radius:12px;border:1px solid var(--mg2)">
@@ -949,20 +949,8 @@ function startAssessment() {
   if(!ok) return;
   var session = document.getElementById('loginSession') ? document.getElementById('loginSession').value : 'initial';
   state.user = {name:name, role:role, cohort:team, session:session};
-  // Route to pulse (5 questions) or full assessment (15 questions)
-  var isPulse = session !== 'initial';
-  var sourceQ = isPulse ? PULSE_QUESTIONS : QUESTIONS;
-  state.isPulse = isPulse;
-  state.shuffledQ = sourceQ.map(function(q){
-    var shuffled = q.opts.slice().sort(function(){return Math.random()-.5;});
-    return Object.assign({}, q, {opts: shuffled});
-  });
-  state.answers = new Array(sourceQ.length).fill(null);
-  state.currentQ = 0;
-  state.selectedPersona = null;
-  state.selectedConf = null;
-  renderQuestion();
-  showScreen('assessment');
+  // Show the pre-assessment info modal — dismissPreModal() will launch the assessment
+  showPreModal();
 }
 
 // ================================================================
@@ -2398,7 +2386,20 @@ function showPreModal() {
 function dismissPreModal() {
   document.getElementById('preModal').classList.add('hidden');
   document.body.style.overflow = '';
-  showScreen('login');
+  // User already completed login — proceed directly into the assessment
+  var isPulse = state.user.session !== 'initial';
+  var sourceQ = isPulse ? PULSE_QUESTIONS : QUESTIONS;
+  state.isPulse = isPulse;
+  state.shuffledQ = sourceQ.map(function(q){
+    var shuffled = q.opts.slice().sort(function(){return Math.random()-.5;});
+    return Object.assign({}, q, {opts: shuffled});
+  });
+  state.answers = new Array(sourceQ.length).fill(null);
+  state.currentQ = 0;
+  state.selectedPersona = null;
+  state.selectedConf = null;
+  renderQuestion();
+  showScreen('assessment');
 }
 
 // Close if clicking the dark overlay itself
