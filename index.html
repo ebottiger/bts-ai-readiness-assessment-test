@@ -275,7 +275,7 @@ select option{font-size:13px;font-family:system-ui,sans-serif;padding:4px 0}
     <button class="btn btn-secondary" onclick="showScreen('mgr-login')">Manager View</button>
   </div>
   <div style="margin-top:40px;padding:20px 24px;background:#fff;border-radius:12px;border:1px solid var(--mg2)">
-    <p style="font-size:15px;color:var(--tg);line-height:1.75;text-align:center">Your result will show you <strong style="color:var(--ch)">where you are</strong>, <strong style="color:var(--ch)">what you bring</strong>, and <strong style="color:var(--ch)">what one step forward looks like</strong> from exactly here.</p>
+    <p style="font-size:15px;color:var(--tg);line-height:2;text-align:center">Your result will show you<br><strong style="color:var(--ch)">where you are</strong>, <strong style="color:var(--ch)">what you bring</strong>, and <strong style="color:var(--ch)">what one step forward looks like</strong><br>from exactly here.</p>
   </div>
 </div>
 </div>
@@ -592,23 +592,24 @@ var PERSONAS = {
 };
 
 var TEAMS = [
+  {id:"act",        name:"ACT",                             code:"BTS-ACT"},
+  {id:"cwm",        name:"Contingent Workforce Management", code:"BTS-CWM"},
+  {id:"demo",       name:"Demo",                            code:"BTS-DMO"},
+  {id:"digital",    name:"Digital",                         code:"BTS-DIG"},
   {id:"finance",    name:"Finance",                         code:"BTS-FIN"},
   {id:"design",     name:"Graphic Design",                  code:"BTS-GFX"},
-  {id:"pmo",        name:"PMO",                             code:"BTS-PMO"},
-  {id:"prod",       name:"Prod",                            code:"BTS-PRD"},
-  {id:"pro",        name:"PRO",                             code:"BTS-PRO"},
-  {id:"virtualops", name:"Virtual Operators",               code:"BTS-VOP"},
-  {id:"logistics",  name:"Logistics",                       code:"BTS-LOG"},
   {id:"helpdesk",   name:"Help Desk",                       code:"BTS-HLP"},
-  {id:"digital",    name:"Digital",                         code:"BTS-DIG"},
-  {id:"momenta",    name:"Momenta",                         code:"BTS-MOM"},
-  {id:"act",        name:"ACT",                             code:"BTS-ACT"},
-  {id:"talent",     name:"Talent Acquisition",              code:"BTS-TAL"},
+  {id:"logistics",  name:"Logistics",                       code:"BTS-LOG"},
   {id:"marketing",  name:"Marketing",                       code:"BTS-MKT"},
-  {id:"cwm",        name:"Contingent Workforce Management", code:"BTS-CWM"},
+  {id:"momenta",    name:"Momenta",                         code:"BTS-MOM"},
+  {id:"pmo",        name:"PMO",                             code:"BTS-PMO"},
+  {id:"pro",        name:"PRO",                             code:"BTS-PRO"},
+  {id:"prod",       name:"Prod",                            code:"BTS-PRD"},
+  {id:"px",         name:"PX",                              code:"BTS-PX"},
   {id:"set",        name:"SET",                             code:"BTS-SET"},
+  {id:"talent",     name:"Talent Acquisition",              code:"BTS-TAL"},
   {id:"test",       name:"Test",                            code:"BTS-TST"},
-  {id:"demo",       name:"Demo",                            code:"BTS-DMO"}
+  {id:"virtualops", name:"Virtual Operators",               code:"BTS-VOP"}
 ];
 
 // ================================================================
