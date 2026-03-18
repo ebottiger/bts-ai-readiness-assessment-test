@@ -209,7 +209,7 @@ select option{font-size:13px;font-family:system-ui,sans-serif;padding:4px 0}
 .all-personas-section{margin-bottom:20px}
 .all-personas-section h3{font-size:13px;font-weight:700;margin-bottom:4px}
 .all-personas-section .intro{font-size:13px;color:var(--tg);line-height:1.65;margin-bottom:16px}
-.persona-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.persona-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
 .persona-card{border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;height:100%}
 .persona-card .pc-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .persona-card .pc-emoji{font-size:20px}
@@ -435,6 +435,9 @@ select option{font-size:13px;font-family:system-ui,sans-serif;padding:4px 0}
     <h3>📊 Take the Quarterly Pulse</h3>
     <p style="margin-bottom:10px">In 90 days, retake this assessment to see how your persona has shifted. Personas change as confidence, capacity, and context evolve — and watching that movement over time is often more valuable than any single result.</p>
     <p style="font-size:13px;color:#3a5a8a">The personas in this assessment are meant to become shared language on your team — not labels, but a shorthand for conversations that might otherwise be hard to start. The more fluently your team can say <em>"I am feeling pretty Overwhelmed Operator on this one"</em> — the more honest and productive those conversations become.</p>
+    <div style="margin-top:14px;padding:12px 16px;background:#EEF4FF;border-radius:10px;border-left:3px solid #0057A8;font-size:13px;color:#0057A8;line-height:1.7">
+      <strong>How to take a Pulse Check:</strong> Click <strong>Begin Assessment</strong> on the home page, fill in your details, and under <strong>Assessment Round</strong> select the quarter that applies — <strong>Q1 Pulse Check</strong> after your first 90 days, <strong>Q2 Pulse Check</strong> after your second, and so on up to Q6. Each pulse is 5 questions and takes about 3 minutes.
+    </div>
   </div>
 </div>
 </div>
@@ -447,7 +450,7 @@ select option{font-size:13px;font-family:system-ui,sans-serif;padding:4px 0}
     <div class="info-bar">🔒 Results are anonymized by default. Toggle to named view once inside.</div>
     <div class="form-group">
       <label>Team Access Code</label>
-      <input id="mgrCode" placeholder="e.g. BTS-PMO" style="font-family:monospace;letter-spacing:1px" onkeydown="if(event.key==='Enter')mgrLogin()">
+      <input id="mgrCode" style="font-family:monospace;letter-spacing:1px" onkeydown="if(event.key==='Enter')mgrLogin()">
       <div class="err" id="mgrErr"></div>
     </div>
     <button class="btn btn-primary" style="width:100%;margin-bottom:14px" onclick="mgrLogin()">Access My Team Dashboard →</button>
@@ -1332,8 +1335,10 @@ function renderResults() {
         +'<div style="margin-bottom:12px">'
           +(pp.strengths||[]).map(function(s){ return '<div style="display:flex;gap:8px;margin-bottom:5px"><span style="color:'+pp.color+';font-size:11px;margin-top:2px">&#8212;</span><span style="font-size:12px;line-height:1.5">'+s+'</span></div>'; }).join('')
         +'</div>'
-        +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tg);margin-bottom:5px;margin-top:16px">In the AI era</div>'
-        +'<div style="font-size:13px;line-height:1.65;padding:10px 12px;border-radius:8px;background:#fff;border:1px solid '+pp.color+';color:'+pp.color+';margin-top:auto">'+pp.era+'</div>'
+        +'<div style="margin-top:auto">'
+        +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tg);margin-bottom:5px">In the AI era</div>'
+        +'<div style="font-size:13px;line-height:1.65;padding:10px 12px;border-radius:8px;background:#fff;border:1px solid '+pp.color+';color:'+pp.color+'">'+pp.era+'</div>'
+        +'</div>'
         +'</div>'
       });
     }
@@ -1532,15 +1537,27 @@ function downloadPDF() {
 
     // ── STRENGTHS + HOW YOU ADD VALUE — two coloured cards side by side ──
     var cw = PW/2 - 3;
+    var ITEM_FS = 10; // slightly smaller than MIN_FS so items always fit
+    var ITEM_LH = 4.8; // line height per line at this size
+    var ITEM_GAP = 1.5; // gap between bullets
 
-    // Measure both columns at MIN_FS to find the taller card
-    doc.setFontSize(MIN_FS);
+    // Pre-measure ALL items to calculate exact card height
+    doc.setFontSize(ITEM_FS);
     var sItems = p.strengths || [];
     var lItems = p.leadership || [];
-    var sRowH = 6.5, lRowH = 6.5;
-    var leftCardH  = 10 + sItems.length * sRowH + 6;
-    var rightCardH = 10 + lItems.length * lRowH + 6;
-    var colCardH = Math.max(leftCardH, rightCardH);
+
+    function measureItems(items) {
+      var h = 0;
+      items.forEach(function(s){
+        var lines = doc.splitTextToSize(s, cw-16);
+        h += lines.length * ITEM_LH + ITEM_GAP;
+      });
+      return h;
+    }
+
+    var leftContentH  = measureItems(sItems);
+    var rightContentH = measureItems(lItems);
+    var colCardH = 14 + Math.max(leftContentH, rightContentH) + 6;
 
     // Left card — persona colour tint
     var pTint = tint(pc, 0.88);
@@ -1564,26 +1581,26 @@ function downloadPDF() {
     doc.setTextColor(emRgb[0],emRgb[1],emRgb[2]);
     doc.text('HOW YOU ADD VALUE', M+cw+14, y+8);
 
-    // Strengths items — dot bullet, text wraps fully inside card
+    // Strengths items — dot bullet, tighter spacing
     var iy = y + 14;
     sItems.forEach(function(s){
-      doc.setFont('helvetica','normal'); doc.setFontSize(MIN_FS);
+      doc.setFont('helvetica','normal'); doc.setFontSize(ITEM_FS);
       doc.setTextColor(pc[0],pc[1],pc[2]); doc.text('\u2022', M+8, iy);
       doc.setTextColor(45,45,45);
-      var sl = doc.splitTextToSize(s, cw-14);
+      var sl = doc.splitTextToSize(s, cw-16);
       doc.text(sl, M+13, iy);
-      iy += sl.length * 5.5 + 1;
+      iy += sl.length * ITEM_LH + ITEM_GAP;
     });
 
-    // Leadership items — dot bullet, text wraps fully inside card
+    // Leadership items — dot bullet, tighter spacing
     iy = y + 14;
     lItems.forEach(function(l){
-      doc.setFont('helvetica','normal'); doc.setFontSize(MIN_FS);
+      doc.setFont('helvetica','normal'); doc.setFontSize(ITEM_FS);
       doc.setTextColor(emRgb[0],emRgb[1],emRgb[2]); doc.text('\u2022', M+cw+14, iy);
       doc.setTextColor(45,45,45);
-      var ll = doc.splitTextToSize(l, cw-14);
+      var ll = doc.splitTextToSize(l, cw-16);
       doc.text(ll, M+cw+19, iy);
-      iy += ll.length * 5.5 + 1;
+      iy += ll.length * ITEM_LH + ITEM_GAP;
     });
 
     y += colCardH + 8;
@@ -2465,7 +2482,7 @@ init();
       </div>
       <div class="pre-modal-item">
         <div class="pre-modal-item-icon">📄</div>
-        <p>When you reach your results, you can <strong>download them as a PDF</strong> or submit them to your team — anonymously or with your name.</p>
+        <p>When you reach your results, you can <strong>download them as a PDF</strong> or submit a quick form to share your persona results with your team lead — anonymously or with your name attached.</p>
       </div>
       <div class="pre-modal-item">
         <div class="pre-modal-item-icon">🚪</div>
